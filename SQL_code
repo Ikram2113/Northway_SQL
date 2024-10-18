@@ -1,0 +1,93 @@
+USE Northway;
+
+-- CONSULTAS
+
+SELECT * FROM Products
+ORDER BY ProductName DESC; 
+
+SELECT ProductName FROM Products
+WHERE ProductID = 14;
+
+-- ¿Cual es el producto mas vendido en 1996? 
+
+SELECT *
+FROM orderdetails
+ JOIN orders
+  ON orderdetails.OrderID=orders.OrderID
+ JOIN products
+  ON products.ProductID=orderdetails.OrderDetailID
+WHERE OrderDate between '1996-01-01' and '1996-12-01'
+ORDER BY Quantity DESC LIMIT 1;
+
+-- ¿Cuál es la categoria de productos que ha vendido más unidades durante 2017?
+
+SELECT * -- CategoryName
+FROM categories
+	JOIN products
+	  ON products.CategoryID= categories.CategoryID
+	JOIN orderdetails
+      ON orderdetails.ProductID= products.ProductID
+	JOIN orders
+      ON orders.OrderID=orderdetails.OrderID
+WHERE OrderDate between '1996-01-01' and '1996-12-01'
+ORDER BY Quantity DESC LIMIT 1;
+
+-- ¿Cuál es el nombre del cliente cuyo gasto ha sido más alto en 2015? 
+
+SELECT CustomerName
+FROM customers
+	INNER JOIN orders
+       ON orders.CustomerID = customers.CustomerID
+    INNER JOIN orderdetails
+       ON orderdetails.OrderID = orders.OrderID
+	INNER JOIN products
+       ON orderdetails.ProductID = products.ProductID
+WHERE OrderDate between '1996-01-01' and '1996-12-01'
+GROUP BY orders.CustomerID
+ORDER BY SUM(Price*Quantity) DESC LIMIT 1;
+
+-- ¿Cuanto ha facturado la compañía en cada uno de los años de los que tiene datos?
+
+SELECT SUM(Price*Quantity) as Beneficio, YEAR(OrderDate) as Año
+FROM orderdetails
+INNER JOIN products
+INNER JOIN orders
+GROUP BY YEAR(OrderDate);
+
+-- ¿Cuales son los nombres de los productos cuyo precio es superior a la media?
+
+SELECT ProductName
+FROM products
+WHERE Price > (SELECT AVG(Price) FROM products);
+
+-- ¿Cuales son los empleades (nombre y apellido) que han facturado 
+-- más de 50.000$ durante 2017?
+
+SELECT FirstName, LastName
+FROM employees
+ JOIN orders
+	ON employees.EmployeeID=orders.EmployeeID
+ JOIN orderdetails
+	ON orderdetails.OrderID=orders.OrderID
+ JOIN products
+	ON products.ProductID=orderdetails.ProductID
+WHERE OrderDate between '1996-01-01' and '1996-12-01'
+GROUP BY employees.EmployeeID
+HAVING SUM(Quantity*Price)>50000;
+
+-- ¿Cuánto clientes no tienen persona de contanto?
+
+-- ¿Cuál es el Manager (nombre y apellido identificado por el campo manager_id) 
+-- que menos ha facturado durante 2017?
+
+SELECT employees.EmployeeID
+FROM employees
+INNER JOIN orders
+    ON orders.EmployeeID = employees.EmployeeID
+INNER JOIN orderdetails
+   ON orderdetails.OrderID = orders.OrderID
+INNER JOIN products
+   ON products.ProductID = orderdetails.ProductID
+WHERE OrderDate between '1996-01-01' and '1996-12-01'
+GROUP BY employees.EmployeeID
+ORDER BY SUM(Price*Quantity) LIMIT 1;
